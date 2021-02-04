@@ -25,11 +25,15 @@
 #include <execinfo.h>
 #include <string>
 #include "gtest/gtest.h"
+#include "config/bpool-version.h"
 
 #include <glog/logging.h>
 
 using std::string;
 
+#if defined(CHAIN_TYPE_BSV)
+bool fRequireStandard = true;
+#endif
 //
 // run all:      ./unittest
 // run single:   ./unittest --gtest_filter=StratumSession\*
@@ -53,7 +57,7 @@ void handler(int sig) {
 }
 }
 
-typedef char * CString;
+typedef char *CString;
 
 int main(int argc, char **argv) {
   signal(SIGSEGV, handler);
@@ -65,19 +69,19 @@ int main(int argc, char **argv) {
   FLAGS_logbuflevel = -1;
   FLAGS_logtostderr = true;
   FLAGS_colorlogtostderr = true;
-  
-  CString * newArgv = new CString [argc];
+
+  LOG(INFO) << BIN_VERSION_STRING("unittest");
+
+  CString *newArgv = new CString[argc];
   memcpy(newArgv, argv, argc * sizeof(CString));
   string testname = "--gtest_filter=";
   if (argc == 2 && newArgv[1][0] != '-') {
     testname.append(newArgv[1]);
-    newArgv[1] = (char*)testname.c_str();
+    newArgv[1] = (char *)testname.c_str();
   }
   testing::InitGoogleTest(&argc, newArgv);
-  
+
   int ret = RUN_ALL_TESTS();
-  delete [] newArgv;
+  delete[] newArgv;
   return ret;
 }
-
-

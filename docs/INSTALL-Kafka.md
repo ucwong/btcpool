@@ -1,8 +1,8 @@
 Install Kafka
 ==============
 
-* OS: `Ubuntu 14.04 LTS, 64 Bits`
-* Kafka: `v0.10.0.0`
+* OS: `Ubuntu 14.04 LTS, 64 Bits`, `Ubuntu 16.04 LTS, 64 Bits`
+* Kafka: `v0.11.0.2`
 * see more: https://kafka.apache.org/documentation.html#quickstart
 
 **install depends**
@@ -16,11 +16,11 @@ apt-get install -y default-jre
 ```
 mkdir /root/source
 cd /root/source
-wget http://ftp.cuhk.edu.hk/pub/packages/apache.org/kafka/0.10.0.0/kafka_2.11-0.10.0.0.tgz
+wget https://mirrors.tuna.tsinghua.edu.cn/apache/kafka/0.11.0.2/kafka_2.11-0.11.0.2.tgz
  
 mkdir -p /work/kafka
 cd /work/kafka
-tar -zxf /root/source/kafka_2.11-0.10.0.0.tgz --strip 1
+tar -zxf /root/source/kafka_2.11-0.11.0.2.tgz --strip 1
 ```
 
 **edit conf**
@@ -29,13 +29,20 @@ tar -zxf /root/source/kafka_2.11-0.10.0.0.tgz --strip 1
 
 The broker's id is `1`.
 
+For tester: if you have only one kafka broker, set `offsets.topic.replication.factor=1`.
+
+If the amount of brokers less than `offsets.topic.replication.factor`, high-level kafka consumer may not work properly, which means that `sharelogger` cannot consume any share from kafka.
+
 ```
 # The id of the broker. This must be set to a unique integer for each broker.
 broker.id=1
 
+# The replication factor for the offsets topic.
+offsets.topic.replication.factor=3 # IMPORTANT: set to 1 if only one kafka broker
+
 # increate message size limit
-message.max.bytes=20000000
-replica.fetch.max.bytes=30000000
+message.max.bytes=60000000
+replica.fetch.max.bytes=80000000
 
 log.dirs=/work/kafka-logs
 listeners=PLAINTEXT://10.0.0.4:9092
@@ -66,6 +73,7 @@ edit conf file `vim /etc/supervisor/conf.d/kafka.conf`:
 
 ```
 [program:kafka]
+environment=KAFKA_HEAP_OPTS="-Xmx2G -Xms1G"
 directory=/work/kafka
 command=/work/kafka/bin/kafka-server-start.sh /work/kafka/config/server.properties
 autostart=true
